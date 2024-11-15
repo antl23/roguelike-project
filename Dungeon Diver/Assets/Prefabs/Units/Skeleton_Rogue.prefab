@@ -2402,6 +2402,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8280588475364720655}
+  - component: {fileID: 4993684122265245715}
   m_Layer: 0
   m_Name: Skeleton_Rogue
   m_TagString: Untagged
@@ -2417,7 +2418,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8572711388896723902}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: 0, y: -0.7071068, z: 0, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -2432,7 +2433,27 @@ Transform:
   - {fileID: 7803692032017090451}
   - {fileID: 7409256974049944513}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: -90, z: 0}
+--- !u!114 &4993684122265245715
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8572711388896723902}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 857d202c6ecac034b8f0fccd5ce65f71, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  team: 0
+  currentX: 0
+  currentY: 0
+  unitType: 0
+  strength: 5
+  dexterity: 8
+  vigor: 8
+  range: 0
 --- !u!1 &9158852779266424162
 GameObject:
   m_ObjectHideFlags: 0

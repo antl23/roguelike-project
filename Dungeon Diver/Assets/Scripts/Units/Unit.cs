@@ -20,18 +20,17 @@ public class Unit : MonoBehaviour
     public int currentX;
     public int currentY;
     public UnitType unitType;
-
     public int strength;
     public int dexterity;
     public int vigor;
+    public int range;
 
-    private Vector3 desiredPosition;
-
-    public void InitializeStats(int str, int dex, int vig)
+    public void InitializeStats(int str, int dex, int vig, int ran)
     {
         this.strength = str;
         this.dexterity = dex;
         this.vigor = vig;
+        this.range = ran;
     }
     public bool IsValidMove(Vector2Int newPosition)
     {
@@ -42,10 +41,30 @@ public class Unit : MonoBehaviour
 
         int deltaX = Mathf.Abs(newPosition.x - currentX);
         int deltaY = Mathf.Abs(newPosition.y - currentY);
-        if (deltaX + deltaY != 1)
+
+        if (unitType == UnitType.Player1 || unitType == UnitType.Player2)
         {
-            return false;
+            if (deltaY != 1 || deltaX != 0)
+            {
+                return false;
+            }
         }
+        else if (unitType == UnitType.Player3 || unitType == UnitType.Player4)
+        {
+            if (deltaX + deltaY > 2)
+            {
+                return false;
+            }
+        }
+        else
+        {
+
+            if (deltaX + deltaY != 1)
+            {
+                return false;
+            }
+        }
+
 
         if (team == 0 && newPosition.x > 1) return false;
         if (team == 1 && newPosition.x < 2) return false;
@@ -59,14 +78,23 @@ public class Unit : MonoBehaviour
             Debug.Log("No target selected.");
             return;
         }
+
         int deltaX = Mathf.Abs(target.currentX - currentX);
         int deltaY = Mathf.Abs(target.currentY - currentY);
-        if (deltaX + deltaY != 1)
+
+        int attackRange = 1;
+
+        if (unitType == UnitType.Player3 || unitType == UnitType.Player4) 
+        {
+            attackRange = 2;
+        }
+
+  
+        if (deltaX + deltaY > attackRange)
         {
             Debug.Log("Target is out of attack range.");
             return;
         }
-
 
         target.vigor -= this.strength;
         Debug.Log(this.unitType + " attacked " + target.unitType + " for " + this.strength + " damage");
@@ -74,6 +102,7 @@ public class Unit : MonoBehaviour
         if (target.vigor <= 0)
         {
             Debug.Log(target.unitType + " has been defeated");
+            if (target.unitType == UnitType.Player1 || target.unitType == UnitType.Player2) { GridManager.Instance.frontline--; }
             GridManager.Instance.RemoveUnitFromTurnOrder(target);
             Destroy(target.gameObject);
         }
@@ -82,7 +111,7 @@ public class Unit : MonoBehaviour
     public void Move(Vector2Int newPosition)
     {
         int tileSize = GridManager.Instance.tileSize;
-        if (IsValidMove(newPosition))
+        if (IsValidMove(newPosition)&& !IsTileOccupied(newPosition))
         {
             GridManager.Instance.units[currentX, currentY] = null;
             currentX = newPosition.x;
@@ -91,5 +120,9 @@ public class Unit : MonoBehaviour
             transform.position = new Vector3(newPosition.x * tileSize, 1, newPosition.y * tileSize); 
             Debug.Log(unitType + " moved to " + newPosition);
         }
+    }
+    public bool IsTileOccupied(Vector2Int tilePosition)
+    {
+        return GridManager.Instance.units[tilePosition.x, tilePosition.y] != null;
     }
 }

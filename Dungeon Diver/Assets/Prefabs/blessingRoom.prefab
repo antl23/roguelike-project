@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 2408512666239570129}
   - component: {fileID: 2412488825449628413}
   - component: {fileID: 5666076570698569731}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: shelf_small_candles
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -92,7 +92,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8855890328241708695}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: blessingRoom
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -108,7 +108,7 @@ Transform:
   m_GameObject: {fileID: 4409394907411925108}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 37.570473, y: -15.302728, z: -33.52642}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -127,7 +127,7 @@ GameObject:
   - component: {fileID: 8555783736798660892}
   - component: {fileID: 2733932137755878485}
   - component: {fileID: 4693316640130501007}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: floor_tile_large (2)
   m_TagString: Untagged
   m_Icon: {fileID: 0}

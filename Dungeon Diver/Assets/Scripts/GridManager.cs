@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.TextCore.Text;
 using UnityEngine.Tilemaps;
 using UnityEngine.UIElements;
@@ -11,6 +12,8 @@ public class GridManager : MonoBehaviour
     public static GridManager Instance { get; private set; }
     [SerializeField] GameObject tile;
     [SerializeField] TextMeshProUGUI turnText;
+    [SerializeField] private Camera combatCamera;
+    [SerializeField] private Canvas GameOver;
     public int tileSize;
     public Unit[,] units;
     private Unit currentTurn;
@@ -23,6 +26,7 @@ public class GridManager : MonoBehaviour
     private Vector2Int currentHover = new Vector2Int(-1, -1);
     private Vector2Int selectedTile = new Vector2Int(-1, -1);
     private Color originalColor;
+    public int frontline = 2;
 
     [SerializeField] private GameObject[] prefabs;
 
@@ -40,14 +44,13 @@ public class GridManager : MonoBehaviour
         GenerateAllTiles(tileSize, TILECOUNTX, TILECOUNTY);
         SpawnAllUnits();
         PositionAllPieces();
-        StartTurnSystem();
     }
 
     private void Update()
     {
         if (!currentCamera)
         {
-            currentCamera = Camera.main;
+            currentCamera = combatCamera;
             return;
         }
 
@@ -165,11 +168,14 @@ public class GridManager : MonoBehaviour
         int playerTeam = 0;
         int enemyTeam = 1;
         units[1, 0] = SpawnSingleUnit(UnitType.Player1, playerTeam);
-        //units[1, 2] = SpawnSingleUnit(UnitType.Player1, playerTeam);
-        //units[0, 0] = SpawnSingleUnit(UnitType.Player1, playerTeam);
-        //units[0, 2] = SpawnSingleUnit(UnitType.Player1, playerTeam);
+        units[1, 2] = SpawnSingleUnit(UnitType.Player2, playerTeam);
+        units[0, 0] = SpawnSingleUnit(UnitType.Player3, playerTeam);
+        units[0, 2] = SpawnSingleUnit(UnitType.Player4, playerTeam);
         units[2, 0] = SpawnSingleUnit(UnitType.Enemy1, enemyTeam);
-
+        SpawnRandomEnemy();
+    }
+    private void SpawnRandomEnemy() { 
+        
     }
     private Unit SpawnSingleUnit(UnitType type, int team) {
         Unit unit = Instantiate(prefabs[(int)type - 1], transform).GetComponent<Unit>();
@@ -177,10 +183,11 @@ public class GridManager : MonoBehaviour
         unit.unitType = type;
         unit.team = team;
 
-        if (team == 0)
+        /*if (team == 0)
             unit.InitializeStats(10, 5, 20);
         else
             unit.InitializeStats(8, 5, 15);
+        */
 
         return unit;
     }
@@ -201,6 +208,10 @@ public class GridManager : MonoBehaviour
         units[x, y].currentY = y;
         units[x, y].transform.position = new Vector3(x * tileSize, 1, y * tileSize);
     }
+    public void RestartGame()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
 
     private void StartTurnSystem()
     {
@@ -218,11 +229,54 @@ public class GridManager : MonoBehaviour
     }
     private void StartTurn(Unit unit)
     {
+        if (CheckDefeatCondition())
+        {
+            GameOver.gameObject.SetActive(true);
+            return;
+        }
+        if (AllEnemiesDefeated())
+        {
+            DungeonMaster.Instance.ReturnToDungeon();
+        }
         currentTurn = unit;
         Debug.Log("It's " + currentTurn.unitType + "'s turn!");
         Debug.Log(unit.currentX + " " + unit.currentY);
+        if (frontline <= 0)
+        {
+            Vector2Int newPositionPlayer3 = new Vector2Int(currentTurn.currentX + 1, currentTurn.currentY);
+            Vector2Int newPositionPlayer4 = new Vector2Int(currentTurn.currentX + 1, currentTurn.currentY);
 
-        turnText.text = "current:" + currentTurn.unitType;
+            if (currentTurn.unitType == UnitType.Player3 && currentTurn.IsValidMove(newPositionPlayer3) && !currentTurn.IsTileOccupied(newPositionPlayer3))
+            {
+                currentTurn.Move(newPositionPlayer3);
+            }
+            else if (currentTurn.unitType == UnitType.Player4 && currentTurn.IsValidMove(newPositionPlayer4) && !currentTurn.IsTileOccupied(newPositionPlayer4))
+            {
+                currentTurn.Move(newPositionPlayer4);
+            }
+        }
+        string unitName;
+        switch (currentTurn.unitType)
+        {
+            case UnitType.Player1:
+                unitName = "Knight";
+                break;
+            case UnitType.Player2:
+                unitName = "Fighter";
+                break;
+            case UnitType.Player3:
+                unitName = "Archer";
+                break;
+            case UnitType.Player4:
+                unitName = "Mage";
+                break;
+            default:
+                unitName = currentTurn.unitType.ToString(); 
+                break;
+        }
+
+        turnText.text = "Current: " + unitName;
+
         if (currentTurn.team == 1)
         {
             StartCoroutine(EnemyTurn());
@@ -268,9 +322,12 @@ public class GridManager : MonoBehaviour
             for (int y = 0; y < TILECOUNTY; y++)
             {
                 Unit unit = units[x, y];
-                if (unit != null && unit.team == 0) 
+                if (unit != null && unit.team == 0)
                 {
-                    float distance = Mathf.Abs(x - currentTurn.currentX) + Mathf.Abs(y - currentTurn.currentY);
+
+                    float PriorityWeight = 10.0f;
+                    float distance = PriorityWeight * Mathf.Abs(x - currentTurn.currentX) + Mathf.Abs(y - currentTurn.currentY);
+
                     if (distance < closestDistance)
                     {
                         closestPlayer = unit;
@@ -282,7 +339,7 @@ public class GridManager : MonoBehaviour
 
         return closestPlayer;
     }
-    private Vector2Int GetMoveDirection(Vector2Int from, Vector2Int to)
+        private Vector2Int GetMoveDirection(Vector2Int from, Vector2Int to)
     {
         int deltaX = to.x - from.x;
         int deltaY = to.y - from.y;
@@ -299,9 +356,31 @@ public class GridManager : MonoBehaviour
     private void EndTurn()
     {
         currentTurnIndex = (currentTurnIndex + 1) % turnOrder.Count;
-        StartTurn(turnOrder[currentTurnIndex]);
+        
+            StartTurn(turnOrder[currentTurnIndex]);
+        
     }
-    
+    private bool CheckDefeatCondition()
+    {
+        foreach (Unit unit in units)
+        {
+            if (unit != null && unit.team == 0)
+                return false;
+        }
+        return true;
+    }
+    private bool AllEnemiesDefeated()
+    {
+        foreach (Unit unit in units)
+        {
+            if (unit != null && unit.team == 1)
+            {
+                return false; 
+            }
+        }
+        return true;
+    }
+
     private Vector2Int LookUpTileIndex(GameObject hitInfo)
     {
         for (int x = 0; x < TILECOUNTX; x++)
@@ -315,7 +394,7 @@ public class GridManager : MonoBehaviour
     {
         if (currentTurn != null && selectedTile != new Vector2Int(-1, -1))
         {
-            if (currentTurn.IsValidMove(selectedTile))
+            if (currentTurn.IsValidMove(selectedTile) && !currentTurn.IsTileOccupied(selectedTile))
             {
                 currentTurn.Move(selectedTile);
                 EndTurn();
@@ -326,7 +405,18 @@ public class GridManager : MonoBehaviour
             }
         }
     }
-
+    public void SkipTurn()
+    {
+        if (currentTurn.team == 0)
+        {
+            Debug.Log("Turn skipped.");
+            EndTurn();
+        } else
+        {
+            Debug.Log("Enemy Turn.");
+            return;
+        }
+    }
     public void OnAttackButtonPress()
     {
         if (currentTurn != null && selectedTile != new Vector2Int(-1, -1))
@@ -350,5 +440,9 @@ public class GridManager : MonoBehaviour
             turnOrder.Remove(unit);
             Debug.Log(unit.unitType + " removed from turn order.");
         }
+    }
+    public void StartCombat()
+    {
+        StartTurnSystem();
     }
 }
