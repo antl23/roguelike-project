@@ -501,9 +501,9 @@ public class DungeonMaster : MonoBehaviour
         Unit player4 = GetUnitByType(UnitType.Player4);
 
         Character1.text = player1 != null ? "Knight"+$"\nStr: {player1.strength}\nDex: {player1.dexterity}\nVig: {player1.vigor}\nHp: {player1.hp}" : "";
-        Character2.text = player2 != null ? "Fighter" + $"\nStr: {player2.strength}\nDex: {player2.dexterity}\nVig: {player2.vigor}\nHp: {player1.hp}" : "";
-        Character3.text = player3 != null ? "Archer" + $"\nStr: {player3.strength}\nDex: {player3.dexterity}\nVig: {player3.vigor}\nHp: {player1.hp}" : "";
-        Character4.text = player4 != null ? "Mage" + $"\nStr: {player4.strength}\nDex: {player4.dexterity}\nVig: {player4.vigor}\nHp: {player1.hp}" : "";
+        Character2.text = player2 != null ? "Fighter" + $"\nStr: {player2.strength}\nDex: {player2.dexterity}\nVig: {player2.vigor}\nHp: {player2.hp}" : "";
+        Character3.text = player3 != null ? "Archer" + $"\nStr: {player3.strength}\nDex: {player3.dexterity}\nVig: {player3.vigor}\nHp: {player3.hp}" : "";
+        Character4.text = player4 != null ? "Mage" + $"\nStr: {player4.strength}\nDex: {player4.dexterity}\nVig: {player4.vigor}\nHp: {player4.hp}" : "";
 
         Character1.gameObject.SetActive(player1 != null);
         Character2.gameObject.SetActive(player2 != null);

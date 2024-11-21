@@ -271,7 +271,7 @@ public class GridManager : MonoBehaviour
 
     private void StartTurnSystem()
     {
-        
+        heal(5);
         if (!isBoss) { 
         SpawnRandomEnemy();
         }
@@ -517,13 +517,12 @@ public class GridManager : MonoBehaviour
     }
     public void StartCombat()
     {
-        heal(5);
         SpawnRandomEnemy();
         PositionAllPieces();
         StartTurnSystem();
     }
     private void heal(int heal) {
-        foreach (var unit in turnOrder) {
+        foreach (Unit unit in turnOrder) {
             unit.hp = unit.hp + heal;
             if (unit.hp > unit.vigor) { 
                 unit.hp = unit.vigor;
