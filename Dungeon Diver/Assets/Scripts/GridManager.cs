@@ -6,6 +6,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.TextCore.Text;
 using UnityEngine.Tilemaps;
 using UnityEngine.UIElements;
+using UnityEngine.UI;
 
 public class GridManager : MonoBehaviour
 {
@@ -14,6 +15,10 @@ public class GridManager : MonoBehaviour
     [SerializeField] TextMeshProUGUI turnText;
     [SerializeField] private Camera combatCamera;
     [SerializeField] private Canvas GameOver;
+    [SerializeField] private Canvas ItemGain;
+    [SerializeField] private TextMeshProUGUI itemText;
+    [SerializeField] private UnityEngine.UI.Image hpBar;
+    [SerializeField] private TextMeshProUGUI hpText;
     public int tileSize;
     public Unit[,] units;
     private Unit currentTurn;
@@ -27,8 +32,23 @@ public class GridManager : MonoBehaviour
     private Vector2Int selectedTile = new Vector2Int(-1, -1);
     private Color originalColor;
     public int frontline = 2;
+    private Item randomItem;
+    private bool isBoss = false;
+    private int difficulty = 1;
 
     [SerializeField] private GameObject[] prefabs;
+
+    private List<Item> items = new List<Item>
+    {
+        new Item("Dagger", 1, 2, 0),
+        new Item("Boots", 0, 2 , 1),
+        new Item("Hammer", 3, 0, 0),
+        new Item("Leather Armor",0,0,3),
+        new Item("Iron Chestplate", 0,-2,5),
+        new Item("Magic Ring", 5, 0 ,-3),
+        new Item("Steel Gauntlets", 2, 0 ,2)
+    };
+
 
 
     private void Awake()
@@ -166,28 +186,64 @@ public class GridManager : MonoBehaviour
     {
         units = new Unit[TILECOUNTY, TILECOUNTX];
         int playerTeam = 0;
-        int enemyTeam = 1;
         units[1, 0] = SpawnSingleUnit(UnitType.Player1, playerTeam);
         units[1, 2] = SpawnSingleUnit(UnitType.Player2, playerTeam);
         units[0, 0] = SpawnSingleUnit(UnitType.Player3, playerTeam);
         units[0, 2] = SpawnSingleUnit(UnitType.Player4, playerTeam);
-        units[2, 0] = SpawnSingleUnit(UnitType.Enemy1, enemyTeam);
-        SpawnRandomEnemy();
     }
-    private void SpawnRandomEnemy() { 
+    private void SpawnRandomEnemy() {
+        int enemyTeam = 1;
+        bool haveEnemy = false;
+        Vector2Int[] spawnPositions = {
+        new Vector2Int(2, 0), new Vector2Int(2, 1), new Vector2Int(2, 2), new Vector2Int(2, 3),
+        new Vector2Int(3, 0), new Vector2Int(3, 1), new Vector2Int(3, 2), new Vector2Int(3, 3)
+    };
+        foreach (Vector2Int pos in spawnPositions)
+        {
+            if (units[pos.x, pos.y] == null)
+            {
+                if (SpawnChance(difficulty))
+                {
+                    UnitType enemyType = (UnitType)GetWeightedRandomValue(difficulty);
+                    units[pos.x, pos.y] = SpawnSingleUnit(enemyType, enemyTeam);
+                    haveEnemy = true;
+                }
+
+            }
+        }
         
+    }
+    bool SpawnChance(int weight, int maxWeight = 12)
+    {
+        float probabilityYes = Mathf.Clamp01(weight / (float)maxWeight);
+
+        float rand = Random.Range(0f, 1f);
+
+        return rand <= probabilityYes;
+    }
+    int GetWeightedRandomValue(int weight, int maxWeight = 12)
+    {
+        float probability5 = Mathf.Clamp01(1f - (weight / (float)maxWeight));
+        float probability7 = Mathf.Clamp01(weight / (float)maxWeight);
+        float probability6 = 1f - (probability5 + probability7); 
+
+        float total = probability5 + probability6 + probability7;
+        probability5 /= total;
+        probability6 /= total;
+
+        float rand = Random.Range(0f, 1f);
+        if (rand <= probability5)
+            return 5;
+        else if (rand <= probability5 + probability6)
+            return 6;
+        else
+            return 7;
     }
     private Unit SpawnSingleUnit(UnitType type, int team) {
         Unit unit = Instantiate(prefabs[(int)type - 1], transform).GetComponent<Unit>();
 
         unit.unitType = type;
         unit.team = team;
-
-        /*if (team == 0)
-            unit.InitializeStats(10, 5, 20);
-        else
-            unit.InitializeStats(8, 5, 15);
-        */
 
         return unit;
     }
@@ -215,6 +271,12 @@ public class GridManager : MonoBehaviour
 
     private void StartTurnSystem()
     {
+        
+        if (!isBoss) { 
+        SpawnRandomEnemy();
+        }
+        PositionAllPieces();
+        difficulty++;
         turnOrder = new List<Unit>();
 
         foreach (Unit unit in units)
@@ -234,11 +296,17 @@ public class GridManager : MonoBehaviour
             GameOver.gameObject.SetActive(true);
             return;
         }
+        if (AllEnemiesDefeated() && isBoss) {
+            DungeonMaster.Instance.WinGame();
+            return;
+        }
         if (AllEnemiesDefeated())
         {
-            DungeonMaster.Instance.ReturnToDungeon();
+            DisplayItemReward();
+            return;
         }
         currentTurn = unit;
+        UpdateHPBar(currentTurn);
         Debug.Log("It's " + currentTurn.unitType + "'s turn!");
         Debug.Log(unit.currentX + " " + unit.currentY);
         if (frontline <= 0)
@@ -362,16 +430,16 @@ public class GridManager : MonoBehaviour
     }
     private bool CheckDefeatCondition()
     {
-        foreach (Unit unit in units)
+        foreach (Unit unit in turnOrder)
         {
             if (unit != null && unit.team == 0)
                 return false;
         }
         return true;
     }
-    private bool AllEnemiesDefeated()
+    public bool AllEnemiesDefeated()
     {
-        foreach (Unit unit in units)
+        foreach (Unit unit in turnOrder)
         {
             if (unit != null && unit.team == 1)
             {
@@ -433,6 +501,12 @@ public class GridManager : MonoBehaviour
             }
         }
     }
+    private void ResetCombat()
+    {
+        currentTurn = null;
+        currentTurnIndex = 0;
+
+    }
     public void RemoveUnitFromTurnOrder(Unit unit)
     {
         if (turnOrder.Contains(unit))
@@ -443,6 +517,114 @@ public class GridManager : MonoBehaviour
     }
     public void StartCombat()
     {
+        heal(5);
+        SpawnRandomEnemy();
+        PositionAllPieces();
         StartTurnSystem();
+    }
+    private void heal(int heal) {
+        foreach (var unit in turnOrder) {
+            unit.hp = unit.hp + heal;
+            if (unit.hp > unit.vigor) { 
+                unit.hp = unit.vigor;
+            }
+        }
+    }
+    public void DisplayItemReward()
+    {
+        randomItem = items[Random.Range(0, items.Count)];
+
+        itemText.text = "Item:" + randomItem.name + "\nStats:\n" +
+            "Str:" +randomItem.strength+
+            "           Dex:" + randomItem.dexterity +
+            "\nVig:" + randomItem.vigor;
+        
+        ItemGain.gameObject.SetActive(true);
+    }
+    public void ChoseKnight() 
+    {
+        AssignStatsToUnit(UnitType.Player1);
+        ItemGain.gameObject.SetActive(false);
+        ResetCombat();
+        DungeonMaster.Instance.ReturnToDungeon();
+
+    }
+    public void ChoseArcher()
+    {
+        AssignStatsToUnit(UnitType.Player3);
+        ItemGain.gameObject.SetActive(false);
+        ResetCombat();
+        DungeonMaster.Instance.ReturnToDungeon();
+    }
+    public void ChoseFighter()
+    {
+        AssignStatsToUnit(UnitType.Player2);
+        ItemGain.gameObject.SetActive(false);
+        ResetCombat();
+        DungeonMaster.Instance.ReturnToDungeon();
+    }
+    public void ChoseMage()
+    {
+        AssignStatsToUnit(UnitType.Player4);
+        ItemGain.gameObject.SetActive(false);
+        ResetCombat();
+        DungeonMaster.Instance.ReturnToDungeon();
+    }
+    void AssignStatsToUnit(UnitType unitType) {
+        Unit unit = GetUnitByType(unitType);
+
+        unit.strength += randomItem.strength;
+        unit.dexterity += randomItem.dexterity;
+        unit.vigor += randomItem.vigor;
+
+    }
+    Unit GetUnitByType(UnitType unitType)
+    {
+        foreach (Unit unit in units)
+        {
+            if (unit != null && unit.unitType == unitType)
+            {
+                return unit;
+            }
+        }
+        return null;
+    }
+    private void UpdateHPBar(Unit unit)
+    {
+        if (hpBar != null)
+        {
+            hpBar.fillAmount = (float)unit.hp / unit.vigor;
+        }
+
+        if (hpText != null)
+        {
+            hpText.text = $"{unit.hp} / {unit.vigor}";
+        }
+    }
+    public void BossFightStart() {
+        isBoss = true;
+        int enemyTeam = 1;
+        units[2, 0] = SpawnSingleUnit(UnitType.Enemy3, enemyTeam);
+        units[2, 2] = SpawnSingleUnit(UnitType.Enemy3, enemyTeam);
+        units[3, 1] = SpawnSingleUnit(UnitType.Enemy4, enemyTeam);
+        heal(5);
+        PositionAllPieces();
+        StartTurnSystem();
+    }
+}
+
+public class Item
+{
+    public int strength;
+    public int dexterity;
+    public int vigor;
+    public string name;
+
+    public Item(string name, int strength, int dexterity, int vigor)
+    {
+        this.name = name;
+        this.dexterity = dexterity;
+        this.vigor = vigor;
+        this.strength = strength;
     }
 }

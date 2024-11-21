@@ -41,6 +41,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4810968920303947707}
   - component: {fileID: -1353995507082407350}
+  - component: {fileID: 6055213194035294030}
   m_Layer: 0
   m_Name: barbarian
   m_TagString: Untagged
@@ -89,7 +90,29 @@ MonoBehaviour:
   strength: 8
   dexterity: 8
   vigor: 12
+  hp: 12
   range: 0
+--- !u!95 &6055213194035294030
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 184547317265367110}
+  m_Enabled: 1
+  m_Avatar: {fileID: 9000000, guid: 0b3da1f3c3be7b14bbbc3e7c0295b0b4, type: 2}
+  m_Controller: {fileID: 9100000, guid: e09f74f464156b84fa1a9cadbe62642b, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &239643810121702538
 GameObject:
   m_ObjectHideFlags: 0

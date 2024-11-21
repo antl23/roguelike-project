@@ -29,12 +29,14 @@ public class DungeonMaster : MonoBehaviour
     [SerializeField] private Canvas dungeonUI;
     [SerializeField] private Canvas combatUI;
     [SerializeField] private Canvas teamUI;
+    [SerializeField] private Canvas GameWin;
     [SerializeField] private TextMeshProUGUI Character1;
     [SerializeField] private TextMeshProUGUI Character2;
     [SerializeField] private TextMeshProUGUI Character3;
     [SerializeField] private TextMeshProUGUI Character4;
     [SerializeField] private GridManager gridManager;
     [SerializeField] private GameObject playerLocationPrefab;
+    [SerializeField] private Canvas start;
     private GameObject playerLocation;
     private Camera currentCamera;
     private Vector2Int currentHover = new Vector2Int(-1, -1);
@@ -63,7 +65,6 @@ public class DungeonMaster : MonoBehaviour
     {
         dungeonCamera.gameObject.SetActive(true);
         combatCamera.gameObject.SetActive(false);
-        dungeonUI.gameObject.SetActive(true);
         combatUI.gameObject.SetActive(false);
         currentCamera = dungeonCamera;
         GenerateDungeon();
@@ -108,14 +109,40 @@ public class DungeonMaster : MonoBehaviour
             currentHover = new Vector2Int(-1, -1);
         }
     }
-    public void OnRoomSelected()
+    public void OnRoomSelected(Vector2 playerTile)
     {
-        dungeonCamera.gameObject.SetActive(false);
-        combatCamera.gameObject.SetActive(true);
-        dungeonUI.gameObject.SetActive(false);
-        combatUI.gameObject.SetActive(true);
+        RoomType selectedRoomType = dungeonGrid[(int)playerTile.x, (int)playerTile.y];
 
-        gridManager.StartCombat();
+        switch (selectedRoomType)
+        {
+            case RoomType.Start:
+                break;
+            case RoomType.Room:
+                dungeonCamera.gameObject.SetActive(false);
+                combatCamera.gameObject.SetActive(true);
+                dungeonUI.gameObject.SetActive(false);
+                combatUI.gameObject.SetActive(true);
+
+                gridManager.StartCombat();
+                break;
+            case RoomType.End:
+                dungeonCamera.gameObject.SetActive(false);
+                combatCamera.gameObject.SetActive(true);
+                dungeonUI.gameObject.SetActive(false);
+                combatUI.gameObject.SetActive(true);
+                GridManager.Instance.BossFightStart();
+                break;
+            case RoomType.Shop:
+                gridManager.DisplayItemReward();
+                break;
+            case RoomType.Item:
+                gridManager.DisplayItemReward();
+                break;
+            default:
+                Debug.LogWarning("Unknown room type selected.");
+                break;
+        }
+       
     }
 
     public void ReturnToDungeon()
@@ -234,8 +261,7 @@ public class DungeonMaster : MonoBehaviour
 
                 Vector2Int newRoomPos = current + dir;
 
-                // Check if the position is valid and not cramped
-                if (IsPositionValid(newRoomPos) && !IsCramped(newRoomPos, current))
+                if (IsPositionValid(newRoomPos) && !IsCramped(newRoomPos, current) && newRoomPos != startPosition)
                 {
                     dungeonGrid[newRoomPos.x, newRoomPos.y] = RoomType.Room;
                     roomPositions.Add(newRoomPos);
@@ -275,8 +301,9 @@ public class DungeonMaster : MonoBehaviour
     private bool IsPositionValid(Vector2Int position)
     {
         return position.x >= 0 && position.x < gridSize &&
-               position.y >= 0 && position.y < gridSize &&
-               dungeonGrid[position.x, position.y] == RoomType.Empty;
+           position.y >= 0 && position.y < gridSize &&
+           dungeonGrid[position.x, position.y] == RoomType.Empty &&
+           position != startPosition;
     }
 
     private bool IsCramped(Vector2Int newPos, Vector2Int parentPos)
@@ -449,35 +476,43 @@ public class DungeonMaster : MonoBehaviour
             UpdatePlayerLocation();
             ResetTileColor(selectedTile);
             selectedTile = new Vector2Int(-1, -1);
-            OnRoomSelected();
+            OnRoomSelected(playerTile);
         }
         else
         {
             Debug.Log("Cannot move to non adjacent room.");
         }
     }
-    public void ViewTeam() {
+    public void ViewTeam()
+    {
         dungeonUI.gameObject.SetActive(false);
         teamUI.gameObject.SetActive(true);
 
-            Character1.text = "Knight\nStr: " + gridManager.units[1,0].strength +
-                              "\nDex: " + gridManager.units[1, 0].dexterity +
-                              "\nVig: " + gridManager.units[1, 0].vigor;
+        Unit player1 = GetUnitByType(UnitType.Player1);
+        Unit player2 = GetUnitByType(UnitType.Player2);
+        Unit player3 = GetUnitByType(UnitType.Player3);
+        Unit player4 = GetUnitByType(UnitType.Player4);
 
-            Character2.text = "Fighter\nStr: " + gridManager.units[1, 2].strength +
-                              "\nDex: " + gridManager.units[1, 2].dexterity +
-                              "\nVig: " + gridManager.units[1, 2].vigor;
-        
+        Character1.text = player1 != null ? "Knight"+$"\nStr: {player1.strength}\nDex: {player1.dexterity}\nVig: {player1.vigor}\nHp: {player1.hp}" : "";
+        Character2.text = player2 != null ? "Fighter" + $"\nStr: {player2.strength}\nDex: {player2.dexterity}\nVig: {player2.vigor}\nHp: {player1.hp}" : "";
+        Character3.text = player3 != null ? "Archer" + $"\nStr: {player3.strength}\nDex: {player3.dexterity}\nVig: {player3.vigor}\nHp: {player1.hp}" : "";
+        Character4.text = player4 != null ? "Mage" + $"\nStr: {player4.strength}\nDex: {player4.dexterity}\nVig: {player4.vigor}\nHp: {player1.hp}" : "";
 
-            Character3.text = "Archer\nStr: " + gridManager.units[0, 0].strength +
-                              "\nDex: " + gridManager.units[0, 0].dexterity +
-                              "\nVig: " + gridManager.units[0, 0].vigor;
-        
-
-            Character4.text = "Mage\nStr: " + gridManager.units[0, 2].strength +
-                              "\nDex: " + gridManager.units[0, 2].dexterity +
-                              "\nVig: " + gridManager.units[0, 2].vigor;
-        
+        Character1.gameObject.SetActive(player1 != null);
+        Character2.gameObject.SetActive(player2 != null);
+        Character3.gameObject.SetActive(player3 != null);
+        Character4.gameObject.SetActive(player4 != null);
+    }
+    Unit GetUnitByType(UnitType unitType)
+    {
+        foreach (Unit unit in gridManager.units)
+        {
+            if (unit != null && unit.unitType == unitType)
+            {
+                return unit;
+            }
+        }
+        return null;
     }
     public void HideTeamUI()
     {
@@ -490,5 +525,15 @@ public class DungeonMaster : MonoBehaviour
         int dx = Mathf.Abs(currentTile.x - targetTile.x);
         int dy = Mathf.Abs(currentTile.y - targetTile.y);
         return (dx == 1 && dy == 0) || (dx == 0 && dy == 1);
+    }
+    public void StartControl() {
+        dungeonUI.gameObject.SetActive(true);
+        teamUI.gameObject.SetActive(false);
+        start.gameObject.SetActive(false);
+    }
+    public void WinGame() { 
+        GameWin.gameObject.SetActive(true);
+        dungeonUI.gameObject.SetActive(false);
+        combatUI.gameObject.SetActive(false);
     }
 }

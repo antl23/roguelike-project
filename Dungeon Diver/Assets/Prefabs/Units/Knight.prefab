@@ -1294,6 +1294,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8315528022873183292}
   - component: {fileID: 2419632292279535859}
+  - component: {fileID: 81600914941374834}
   m_Layer: 0
   m_Name: Knight
   m_TagString: Untagged
@@ -1336,7 +1337,29 @@ MonoBehaviour:
   strength: 5
   dexterity: 5
   vigor: 15
+  hp: 15
   range: 0
+--- !u!95 &81600914941374834
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4253503776016838738}
+  m_Enabled: 1
+  m_Avatar: {fileID: 9000000, guid: 0b3da1f3c3be7b14bbbc3e7c0295b0b4, type: 2}
+  m_Controller: {fileID: 9100000, guid: a14cf95fc632d014ea508fe0baf5b491, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &4311948250544274894
 GameObject:
   m_ObjectHideFlags: 0

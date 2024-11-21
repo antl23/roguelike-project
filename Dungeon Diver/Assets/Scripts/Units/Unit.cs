@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+
 public enum UnitType
 { 
     Player1 = 1,
@@ -23,14 +24,25 @@ public class Unit : MonoBehaviour
     public int strength;
     public int dexterity;
     public int vigor;
+    public int hp;
     public int range;
+    private Animator animator;
+    private Vector3 originalDirection;
 
-    public void InitializeStats(int str, int dex, int vig, int ran)
+    void Start()
+    {
+        animator = GetComponent<Animator>();
+
+        originalDirection = transform.forward;
+    }
+
+    public void InitializeStats(int str, int dex, int vig, int ran, int hp)
     {
         this.strength = str;
         this.dexterity = dex;
         this.vigor = vig;
         this.range = ran;
+        this.hp = vigor;
     }
     public bool IsValidMove(Vector2Int newPosition)
     {
@@ -84,42 +96,94 @@ public class Unit : MonoBehaviour
 
         int attackRange = 1;
 
-        if (unitType == UnitType.Player3 || unitType == UnitType.Player4) 
+        if (unitType == UnitType.Player3 || unitType == UnitType.Player4)
         {
             attackRange = 2;
         }
 
-  
         if (deltaX + deltaY > attackRange)
         {
             Debug.Log("Target is out of attack range.");
             return;
         }
 
-        target.vigor -= this.strength;
+        animator.SetTrigger("AttackTrigger");
+
+        target.hp -= this.strength;
         Debug.Log(this.unitType + " attacked " + target.unitType + " for " + this.strength + " damage");
 
-        if (target.vigor <= 0)
+        if (target.hp <= 0)
         {
             Debug.Log(target.unitType + " has been defeated");
             if (target.unitType == UnitType.Player1 || target.unitType == UnitType.Player2) { GridManager.Instance.frontline--; }
             GridManager.Instance.RemoveUnitFromTurnOrder(target);
             Destroy(target.gameObject);
         }
+        animator.SetTrigger("IdleTrigger");
     }
 
     public void Move(Vector2Int newPosition)
     {
         int tileSize = GridManager.Instance.tileSize;
-        if (IsValidMove(newPosition)&& !IsTileOccupied(newPosition))
+
+        if (IsValidMove(newPosition) && !IsTileOccupied(newPosition))
         {
-            GridManager.Instance.units[currentX, currentY] = null;
-            currentX = newPosition.x;
-            currentY = newPosition.y;
-            GridManager.Instance.units[currentX, currentY] = this;
-            transform.position = new Vector3(newPosition.x * tileSize, 1, newPosition.y * tileSize); 
-            Debug.Log(unitType + " moved to " + newPosition);
+            Vector3 movementDirection = new Vector3(newPosition.x - currentX, 0, newPosition.y - currentY).normalized;
+
+            StartCoroutine(RotateToFaceDirection(movementDirection, () =>
+            {
+                animator.SetTrigger("MoveTrigger");
+                GridManager.Instance.units[currentX, currentY] = null;
+                currentX = newPosition.x;
+                currentY = newPosition.y;
+                GridManager.Instance.units[currentX, currentY] = this;
+
+                StartCoroutine(MoveToPosition(new Vector3(newPosition.x * tileSize, 1, newPosition.y * tileSize), () =>
+                {
+                    animator.SetTrigger("IdleTrigger");
+                    StartCoroutine(RotateToFaceDirection(originalDirection, () =>
+                    {
+                        
+                    }));
+                }));
+            }));
         }
+    }
+    private IEnumerator RotateToFaceDirection(Vector3 direction, System.Action onComplete = null)
+    {
+        if (direction == Vector3.zero)
+        {
+            onComplete?.Invoke();
+            yield break;
+        }
+
+        Quaternion targetRotation = Quaternion.LookRotation(direction);
+        float rotationSpeed = 10f;
+
+        while (Quaternion.Angle(transform.rotation, targetRotation) > 0.1f)
+        {
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
+            yield return null;
+        }
+
+        transform.rotation = targetRotation;
+
+        onComplete?.Invoke();
+    }
+
+    private IEnumerator MoveToPosition(Vector3 targetPosition, System.Action onComplete = null)
+    {
+        float speed = 5f;
+
+        while (Vector3.Distance(transform.position, targetPosition) > 0.01f)
+        {
+            transform.position = Vector3.MoveTowards(transform.position, targetPosition, speed * Time.deltaTime);
+            yield return null;
+        }
+
+        transform.position = targetPosition;
+
+        onComplete?.Invoke();
     }
     public bool IsTileOccupied(Vector2Int tilePosition)
     {

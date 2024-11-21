@@ -1,0 +1,64 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &5057662655235184045
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2963469189914904924}
+  - component: {fileID: 3075812021191766649}
+  m_Layer: 0
+  m_Name: GridManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2963469189914904924
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5057662655235184045}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3075812021191766649
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5057662655235184045}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b9c224c4cd53c6d47980796f541202b3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  tile: {fileID: 1794948090546925923, guid: 759e7ea54f515014480da6075d5cb055, type: 3}
+  turnText: {fileID: 0}
+  combatCamera: {fileID: 0}
+  GameOver: {fileID: 0}
+  ItemGain: {fileID: 0}
+  itemText: {fileID: 0}
+  tileSize: 3
+  turnOrder: []
+  frontline: 2
+  prefabs:
+  - {fileID: 4253503776016838738, guid: 5d3e22cd693e959479b5ddc161266272, type: 3}
+  - {fileID: 184547317265367110, guid: 6858c602d5d680e48b66ffc50eac7e9f, type: 3}
+  - {fileID: 1731439262137369664, guid: 68e905f6370c01c45b33d1e21511240f, type: 3}
+  - {fileID: 2694299944760457026, guid: adf6b6c43dccc4045a9f4358eb5f1bed, type: 3}
+  - {fileID: 250663154159076480, guid: eb5ed3d4c74030f439b3db2c05bbd3ff, type: 3}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
