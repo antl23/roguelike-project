@@ -47,6 +47,7 @@ public class DungeonMaster : MonoBehaviour
     private RoomType[,] dungeonGrid;
     private Vector2Int startPosition;
     private List<Vector2Int> roomPositions;
+    private HashSet<Vector2Int> visitedRooms;
 
     public static DungeonMaster Instance { get; private set; }
 
@@ -63,6 +64,7 @@ public class DungeonMaster : MonoBehaviour
     }
     void Start()
     {
+        visitedRooms = new HashSet<Vector2Int>();
         dungeonCamera.gameObject.SetActive(true);
         combatCamera.gameObject.SetActive(false);
         combatUI.gameObject.SetActive(false);
@@ -112,7 +114,12 @@ public class DungeonMaster : MonoBehaviour
     public void OnRoomSelected(Vector2 playerTile)
     {
         RoomType selectedRoomType = dungeonGrid[(int)playerTile.x, (int)playerTile.y];
-
+        if (visitedRooms.Contains(new Vector2Int((int)playerTile.x, (int)playerTile.y)))
+        {
+            Debug.Log("Room already visited, no combat triggered.");
+            return;
+        }
+        visitedRooms.Add(new Vector2Int((int)playerTile.x, (int)playerTile.y));
         switch (selectedRoomType)
         {
             case RoomType.Start:
