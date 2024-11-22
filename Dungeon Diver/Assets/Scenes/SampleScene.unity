@@ -3354,8 +3354,9 @@ MonoBehaviour:
     to protect!). The backline will be moved forward when the frontlines are dead.
     Backliners can additionally attack diagonally as well as attack enemies a block
     away.\n\tWhen you win, you will be given random items to give it to 1 party member.
-    Your party will also heal for 5 hp.\n\tALSO BECAREFUL! PARTY MEMBERS DIE PERMANENTLY.
-    goodluck <3"
+    Your party will also heal for 5 hp.\n\tBasic Control: Click on a square tile
+    to select it, then you can use one of the buttons below to complete an action.\n\tALSO
+    BECAREFUL! PARTY MEMBERS DIE PERMANENTLY. goodluck <3"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}

@@ -258,7 +258,6 @@ public class DungeonMaster : MonoBehaviour
         {
             Vector2Int current = roomQueue.Dequeue();
 
-
             int exits = UnityEngine.Random.Range(1, 5);
             List<Vector2Int> randomDirections = GetRandomizedDirections();
 
@@ -268,12 +267,18 @@ public class DungeonMaster : MonoBehaviour
 
                 Vector2Int newRoomPos = current + dir;
 
-                if (IsPositionValid(newRoomPos) && !IsCramped(newRoomPos, current) && newRoomPos != startPosition)
+                if (IsPositionValid(newRoomPos) && !IsCramped(newRoomPos, current))
                 {
                     dungeonGrid[newRoomPos.x, newRoomPos.y] = RoomType.Room;
                     roomPositions.Add(newRoomPos);
                     roomQueue.Enqueue(newRoomPos);
                     exits--;
+
+                    // Debug check
+                    if (newRoomPos == startPosition)
+                    {
+                        Debug.LogError("Attempted to overwrite start position during expansion!");
+                    }
                 }
             }
         }
@@ -348,8 +353,9 @@ public class DungeonMaster : MonoBehaviour
 
         foreach (var pos in roomPositions)
         {
+            if (pos == startPosition) continue;
 
-            if (IsDeadEnd(pos)) 
+            if (IsDeadEnd(pos))
             {
                 if (!endRoomAssigned)
                 {
